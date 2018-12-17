@@ -1,0 +1,27 @@
+VAGRANTFILE_API_VERSION = "2"
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+    config.ssh.insert_key = false
+    config.vm.provider :virtualbox do |vb|
+        vb.customize ["modifyvm", :id, "--memory", "256"]
+    end
+
+# Application server 1.
+    config.vm.define "lz-app1" do |app|
+        app.vm.hostname = "lz-app1.dev"
+        app.vm.box = "geerlingguy/centos7"
+        app.vm.network :private_network, ip: "192.168.200.4"
+    end
+# Application server 2.
+    config.vm.define "lz-app2" do |app|
+        app.vm.hostname = "lz-app2.dev"
+        app.vm.box = "geerlingguy/centos7"
+        app.vm.network :private_network, ip: "192.168.200.5"
+    end
+
+# Database server.
+    config.vm.define "lz-db" do |db|
+        db.vm.hostname = "lz-db.dev"
+        db.vm.box = "geerlingguy/centos7"
+        db.vm.network :private_network, ip: "192.168.200.6"
+    end
+end

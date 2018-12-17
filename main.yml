@@ -1,0 +1,100 @@
+---
+- name: Homework#2 Install httpd webserver
+  hosts: app
+  become: yes
+  tasks:
+  - name: Install Java
+    yum:
+        name: 
+        - java-1.8.0-openjdk.x86_64
+        state: present
+
+  - name: Ensure group "tomcat" exists
+    group:
+        name: tomcat
+        state: present
+
+  - name: Add the user 'tomcat' with a specific uid and a primary group of 'tomcat'
+    user:
+        name: tomcat
+        comment: Tomcat user
+        create_home: yes
+        group: tomcat
+
+  - name: copy Tomcat
+    copy: 
+        src: "/mnt/d/work/vagrant_vm/test02/apache-tomcat-8.5.35.tar.gz"
+        dest: "/opt/apache-tomcat-8.5.35.tar.gz"
+
+#  - name: create tomcat dir
+#    file:
+#        path: /opt/apache-tomcat-8.5.35
+#        state: directory
+#        mode: 0755
+
+  - name: Extract apache-tomcat-8.5.35.tar.gz into /opt/apache-tomcat-8.5.35
+    unarchive:
+        src: /opt/apache-tomcat-8.5.35.tar.gz
+        dest: /opt/
+        remote_src: yes
+
+  - name: Change ownership of Tomcat installation
+    file: 
+        path: /opt/apache-tomcat-8.5.35 
+        owner: tomcat 
+        group: tomcat 
+        state: directory 
+        recurse: yes
+
+  - name: Configure Tomcat port 8888  
+    template:
+        src: server.xml
+        dest: /opt/apache-tomcat-8.5.35/conf
+        owner: tomcat
+        group: tomcat
+        mode: 0644
+  - name: Open port 8888 for http access
+    firewalld:
+        port: 8888/tcp
+        permanent: yes
+        state: enabled
+
+  - name: Restart the firewalld service to load in the firewall changes
+    service: 
+        name: firewalld 
+        state: restarted
+  - name: Run Tomcat
+    shell: /opt/apache-tomcat-8.5.35/bin/startup.sh
+     
+    
+# - name: Start Tomcat
+#    command: nohup /opt/apache-tomcat-8.5.16/bin/startup.sh
+#    become: true
+#    become_user: tomcat
+    
+  - name: wait for tomcat to start
+    wait_for: port=8888
+
+#  - name: Extract Tomcat archive
+#        command: tar zxvf /opt/apache-tomcat-8.5.35.tar.gz -C /opt/ creates=/opt/apache-tomcat-8.5.35
+
+# - name: Copy configuration files.
+#    copy:
+#        src: "/mnt/d/work/vagrant_vm/test02/httpd.conf"
+#        dest: "/etc/httpd/conf/httpd.conf"
+#        owner: root
+#        group: root
+#        mode: 0644
+        
+#  - name: Apache is started and configure it to run at boot.
+#    service: 
+#        name: httpd
+#        state: started
+#        enabled: yes
+
+
+
+
+
+
+
